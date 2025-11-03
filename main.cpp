@@ -1,8 +1,18 @@
 #include <iostream>
+#include "hashlist.h"
 #include "trie.h"
 using namespace std;
 
+
 int main() {
+    std::string file = "../words_alpha.txt";
+    Hash hash = build(file);
+    if (hash.empty()) {
+        std::cerr << "Error" << std::endl;
+        return 1;
+    }
+
+
     vector<string> words = {"cat", "act", "tac", "dog", "god", "actor"};
     Trie trie;
     trie.buildTrie(words);
@@ -24,8 +34,3 @@ int main() {
     trie.printout(results5, letters5);
     return 0;
 }
-
-// TIP See CLion help at <a
-// href="https://www.jetbrains.com/help/clion/">jetbrains.com/help/clion/</a>.
-//  Also, you can try interactive lessons for CLion by selecting
-//  'Help | Learn IDE Features' from the main menu.
