@@ -1,0 +1,3 @@
+C:/Users/Hannah/CLionProjects/Group 130/cmake-build-debug/CMakeFiles/Group_130.dir
+C:/Users/Hannah/CLionProjects/Group 130/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Hannah/CLionProjects/Group 130/cmake-build-debug/CMakeFiles/rebuild_cache.dir
