@@ -153,7 +153,7 @@ If you've made a mistake (*happens to the best of us*) in the changes you've mad
 
 ## Markdown and README
 
-README files are formatted using Markdown in GitHub. If you're not familiar with Markdown, or if you need some syntax information, you can find syntax and tips in [Markdown resource file](resources/MARKDOWN.md). In addition to README files being formatted using Markdown, you can use the same syntax in your commit messages, your issues, and milestones to format any text.
+README files are formatted using Markdown in GitHub. If you're not familiar with Markdown, or if you need some syntax information, you can find syntax and tips in [Markdown resource file](cmake-build-debug/resources/MARKDOWN.md). In addition to README files being formatted using Markdown, you can use the same syntax in your commit messages, your issues, and milestones to format any text.
 
 ## Additional Resources and Documentation:
 ### General Documentation
