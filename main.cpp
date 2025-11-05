@@ -32,30 +32,55 @@ int main() {
     int window_width = 720;
     int window_height = 850;
 
-    // Load font and create text
+    // Load font and create text / buttons
     sf::Font font("../resources/Font-Sriracha.ttf");
 
     sf::Text TitleText(font, "Word Unscrambler!");
-    TitleText.setCharacterSize(60);
+    TitleText.setCharacterSize(60.f);
     TitleText.setFillColor(sf::Color::White);
-    //TitleText.setStyle(sf::Text::Bold);
     TitleText.setOrigin(TitleText.getLocalBounds().getCenter());
     TitleText.setPosition(sf::Vector2f(window_width/2, window_height/2 - 280));
 
     sf::Text enterCharsText(font, "Enter a string of characters:");
-    enterCharsText.setCharacterSize(35);
+    enterCharsText.setCharacterSize(35.f);
     enterCharsText.setFillColor(sf::Color::White);
-    //enterCharsText.setStyle(sf::Text::Bold);
     enterCharsText.setOrigin(enterCharsText.getLocalBounds().getCenter());
     enterCharsText.setPosition(sf::Vector2f(window_width/2, window_height/2 - 150));
 
     std::string scrambledString;
     sf::Text scrambledText(font, "|");
-    scrambledText.setCharacterSize(28);
+    scrambledText.setCharacterSize(28.f);
     scrambledText.setFillColor(sf::Color::Yellow);
-    //scrambledText.setStyle(sf::Text::Bold);
     scrambledText.setOrigin(scrambledText.getLocalBounds().getCenter());
     scrambledText.setPosition(sf::Vector2f(window_width/2, window_height/2 - 100));
+
+    sf::RectangleShape trieButton({250.f, 90.f});
+    trieButton.setFillColor(sf::Color(25,25,25));
+    trieButton.setOutlineThickness(5.f);
+    trieButton.setOutlineColor(sf::Color::White);
+    trieButton.setOrigin(trieButton.getLocalBounds().getCenter());
+    trieButton.setPosition(sf::Vector2f(window_width/2, window_height/2 + 80));
+
+    sf::Text trieText(font, "Search with Trie");
+    trieText.setCharacterSize(28.f);
+    trieText.setFillColor(sf::Color::White);
+    trieText.setOrigin(trieText.getLocalBounds().getCenter());
+    trieText.setPosition(trieButton.getPosition());
+
+    sf::RectangleShape hashButton({250.f, 90.f});
+    hashButton.setFillColor(sf::Color::Transparent);
+    hashButton.setOutlineThickness(5.f);
+    hashButton.setOutlineColor(sf::Color::White);
+    hashButton.setOrigin(hashButton.getLocalBounds().getCenter());
+    hashButton.setPosition(sf::Vector2f(window_width/2, window_height/2 + 220));
+
+    sf::Text hashText(font, "Search with Hashmap");
+    hashText.setCharacterSize(23.f);
+    hashText.setFillColor(sf::Color::White);
+    hashText.setOrigin(hashText.getLocalBounds().getCenter());
+    hashText.setPosition(hashButton.getPosition());
+
+    bool searched = false;
 
     sf::RenderWindow appWindow(sf::VideoMode(sf::Vector2u(window_width, window_height)), "Word Unscrambler", sf::Style::Close, sf::State::Windowed);
 
@@ -63,34 +88,59 @@ int main() {
     while (appWindow.isOpen()) {
         // event loop
         while (const std::optional<sf::Event> event = appWindow.pollEvent()) {
-            // close event
+            // close window event
             if (event->is<sf::Event::Closed>()) {
                 appWindow.close();
                 break;
             }
+            // text key press event
             if (const auto* textEntered = event->getIf<sf::Event::TextEntered>()) {
                 if (textEntered->unicode == 8 && !scrambledString.empty())
                     scrambledString.pop_back();
                 if (isalpha(textEntered->unicode) && scrambledString.size() < 20)
                     scrambledString += tolower(static_cast<char>(textEntered->unicode));
             }
+            // other key press event
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 if (keyPressed->scancode == sf::Keyboard::Scan::Enter && !scrambledString.empty()) {
                     appWindow.close();
                     break;
                 }
             }
+            // click event (for the buttons)
+            if (const auto* mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
+                if (mouse->button == sf::Mouse::Button::Left) {
+                    if (trieButton.getGlobalBounds().contains(sf::Vector2f(mouse->position))) { // click on 'search with trie'
+                        searched = true;
+
+                    }
+
+                }
+            }
 
         }
+
+
+
+
+
+
         appWindow.clear(sf::Color::Black);
 
-        // draw each text block and update input text
-        appWindow.draw(TitleText);
-        appWindow.draw(enterCharsText);
+        // update input text and draw each text block
         scrambledText.setString(scrambledString + "|");
         scrambledText.setOrigin(scrambledText.getLocalBounds().getCenter());
         scrambledText.setPosition(sf::Vector2f(window_width/2, window_height/2 - 100));
+
+        appWindow.draw(TitleText);
+        appWindow.draw(enterCharsText);
         appWindow.draw(scrambledText);
+        if (!searched) {
+            appWindow.draw(trieButton);
+            appWindow.draw(hashButton);
+            appWindow.draw(trieText);
+            appWindow.draw(hashText);
+        }
 
         appWindow.display();
     }
