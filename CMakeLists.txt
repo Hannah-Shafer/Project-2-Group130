@@ -1,11 +1,9 @@
-cmake_minimum_required(VERSION 3.28)
-project(Project_2_Group130)
+cmake_minimum_required(VERSION 3.30)
+project(Group_130)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 20)
 
-include_directories(.)
-
-add_executable(Project_2_Group130
-        hashlist.h
-        hashlist.cpp
-        main.cpp)
+add_executable(Group_130
+        main.cpp
+        trie.cpp
+)
