@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <vector>
 
@@ -52,8 +53,3 @@ std::vector<std::string> findwords(const std::string& input, const Hash& hash);
 //
 // Created by Kai Patel on 11/3/25.
 //
-
-#ifndef PROJECT_2_GROUP130_HEADER_H
-#define PROJECT_2_GROUP130_HEADER_H
-
-#endif //PROJECT_2_GROUP130_HEADER_H
