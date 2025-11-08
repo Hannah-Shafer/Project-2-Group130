@@ -15,10 +15,18 @@ FetchContent_Declare(SFML
         SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-
 add_executable(Group_130
         main.cpp
         trie.cpp
+        hashlist.cpp
+)
+
+# Copy resources directory to the build directory after build
+add_custom_command(
+        TARGET Group_130 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/resources
+        ${CMAKE_CURRENT_BINARY_DIR}/resources
 )
 
 target_link_libraries(Group_130
