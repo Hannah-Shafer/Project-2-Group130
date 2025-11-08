@@ -1,58 +1,53 @@
-#include <iostream>
-#include <fstream>
 #include <string>
 #include <vector>
-#include <unordered_map>
-#include <algorithm>
-
-using Hash = std::unordered_map<std::string, std::vector<std::string>>;
-
-std::string alphabetize(std::string word) {
-    // Alphabetizes the letters
-    std::sort(word.begin(), word.end());
-    return word;
-}
 
 
-Hash build(const std::string& filename) {
-    // Creates the hash list from the database
-    Hash hash;
-    std::ifstream file(filename);
-    std::string word;
 
-    if (!file.is_open()) {
-        std::cerr << "Error" << std::endl;
-        return hash; // Returns empty map
-    }
+class hashlist {
+private:
+    // node for separate chaining
+    struct node {
+        std::string key;
+        std::vector<std::string> values;
+        node* next;
 
-    while (std::getline(file, word)) {
-        if (!word.empty() && word.back() == '\r') {
-            word.pop_back();
-        } // Mac formatting issue
-        // Lowercase all words
-        std::transform(word.begin(), word.end(), word.begin(),
-                       [](unsigned char c){ return std::tolower(c); });
-        std::string key = alphabetize(word);
-        hash[key].push_back(word);
-        //Alphabetizes and adds to hash list keys
-    }
-    file.close();
-    return hash;
-}
+        node(std::string k, std::string v) : key(k), values({v}), next(nullptr) {}
+    };
 
-// Main function must format the input into all lowercase and removes special characters
-std::vector<std::string> findwords(const std::string& input, const Hash& hash) {
-    std::string key = alphabetize(input);
-    // Find key
-    auto it = hash.find(key);
-    if (it != hash.end()) {
-        return it->second;
-    } else {
-        // No matches
-        return std::vector<std::string>();
-    }
-}
+    node** table;
+    int capacity;
+    int size;
 
+    // private helper functions
+    unsigned int hashfunc(const std::string& key) const;
+    void rehash();
+
+public:
+    // constructor
+    hashlist(int initial_capacity = 500000);
+
+    // destructor
+    ~hashlist();
+
+    // adds a word to the hash table
+    void add(const std::string& key, const std::string& word);
+
+    // finds all anagrams for a given key
+    std::vector<std::string> find(const std::string& key) const;
+};
+
+using Hash = hashlist;
+
+
+
+// creates a key by sorting the word's letters
+std::string alphabetize(std::string word);
+
+// reads dictionary and builds the hash map
+Hash build(const std::string& filename);
+
+// finds words in hash table
+std::vector<std::string> findwords(const std::string& input, const Hash& hash);
 
 //
 // Created by Kai Patel on 11/3/25.
