@@ -1,4 +1,5 @@
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include "hashlist.h"
@@ -18,22 +19,21 @@ int main() {
     while(std::getline( wordsFile, line ))
         wordsVec.push_back(std::move(line));
 
-    // Hash hash = build("../words_alpha.txt");
-    // if (hash.empty()) {
-    //     std::cerr << "Error" << std::endl;
-    //     return 1;
-    // }
+    wordsFile.close();
 
     // creating the Trie from the words file
     Trie trie;
     trie.buildTrie(wordsVec);
+
+    // creating the Hashmap from the words file
+    hashlist hash = build("../resources/words_alpha.txt");
 
 
     int window_width = 720;
     int window_height = 850;
 
     // Load font and create text / buttons
-    sf::Font font("../resources/Font-Sriracha.ttf");
+    sf::Font font("../resources/Sriracha-Regular.ttf");
 
     sf::Text titleText(font, "Word Unscrambler!", 60.f);
     titleText.setFillColor(sf::Color::White);
@@ -84,7 +84,7 @@ int main() {
     anagramsFor_Text.setOrigin(anagramsFor_Text.getLocalBounds().getCenter());
     anagramsFor_Text.setPosition(sf::Vector2f(window_width/2, window_height/2 - 250));
 
-    sf::Text durationText(font, "Time elapsed using Trie:", 25.f);
+    sf::Text durationText(font, "Time elapsed using", 25.f);
     durationText.setFillColor(sf::Color::White);
     durationText.setOrigin(durationText.getLocalBounds().getCenter());
     durationText.setPosition(sf::Vector2f(window_width/2, window_height - 40));
@@ -103,8 +103,10 @@ int main() {
 
     std::string scrambledString;
     bool searched = false;
+    bool trieSearched = false;
     bool trieButtonSelected = true; // trie button selected by default
-    set<string> results;
+    set<string> trieResults;
+    vector<string> hashResults;
     vector<sf::Text> resultTextObjs;
     std::chrono::duration<double, std::milli> duration{};
 
@@ -121,9 +123,9 @@ int main() {
             }
             // text key press event
             if (const auto* textEntered = event->getIf<sf::Event::TextEntered>()) {
-                if (textEntered->unicode == 8 && !scrambledString.empty() && !searched)
+                if (textEntered->unicode == 8 && !scrambledString.empty() && !searched) // backspace pressed
                     scrambledString.pop_back();
-                if (isalpha(textEntered->unicode) && scrambledString.size() < 20 && !searched)
+                if (isalpha(textEntered->unicode) && scrambledString.size() < 25 && !searched) // alphabetical keys pressed
                     scrambledString += tolower(static_cast<char>(textEntered->unicode));
             }
             // other key press event
@@ -131,14 +133,15 @@ int main() {
                 if (keyPressed->scancode == sf::Keyboard::Scan::Enter && !scrambledString.empty()) { // enter key pressed
                     if (trieButtonSelected && !searched) { // enter pressed while trie is selected
                         searched = true;
+                        trieSearched = true;
 
                         auto start = std::chrono::high_resolution_clock::now();
-                        results = trie.searchAnagrams(scrambledString);
+                        trieResults = trie.searchAnagrams(scrambledString);
                         auto end = std::chrono::high_resolution_clock::now();
                         duration = end - start;
 
                         int offset = -5;
-                        for (const string& word : results) {
+                        for (const string& word : trieResults) {
                             sf::Text resultWord(font, word, 28.f);
                             resultWord.setFillColor(sf::Color::White);
                             resultWord.setOrigin(resultWord.getLocalBounds().getCenter());
@@ -147,11 +150,28 @@ int main() {
                             offset++;
                         }
                     } else if (!trieButtonSelected && !searched) {  // enter pressed while hash is selected
-                        cout << "doing the hash" << endl; // placeholder
+                        searched = true;
+
+                        auto start = std::chrono::high_resolution_clock::now();
+                        hashResults = findwords(scrambledString, hash);
+                        auto end = std::chrono::high_resolution_clock::now();
+                        duration = end - start;
+
+                        int offset = -5;
+                        for (const string& word : hashResults) {
+                            sf::Text resultWord(font, word, 28.f);
+                            resultWord.setFillColor(sf::Color::White);
+                            resultWord.setOrigin(resultWord.getLocalBounds().getCenter());
+                            resultWord.setPosition(sf::Vector2f(window_width/2, window_height/2 + offset*30));
+                            resultTextObjs.push_back(resultWord);
+                            offset++;
+                        }
                     } else { // enter pressed after a search is done (reset button)
                         searched = false;
+                        trieSearched = false;
                         scrambledString.clear();
-                        results.clear();
+                        trieResults.clear();
+                        hashResults.clear();
                         resultTextObjs.clear();
                     }
                 }
@@ -169,14 +189,15 @@ int main() {
                 if (mouse->button == sf::Mouse::Button::Left) {
                     if (trieButton.getGlobalBounds().contains(sf::Vector2f(mouse->position)) && !scrambledString.empty() && !searched) { // click on 'search with trie'
                         searched = true;
+                        trieSearched = true;
 
                         auto start = std::chrono::high_resolution_clock::now();
-                        results = trie.searchAnagrams(scrambledString);
+                        trieResults = trie.searchAnagrams(scrambledString);
                         auto end = std::chrono::high_resolution_clock::now();
                         duration = end - start;
 
                         int offset = -5;
-                        for (const string& word : results) {
+                        for (const string& word : trieResults) {
                             sf::Text resultWord(font, word, 28.f);
                             resultWord.setFillColor(sf::Color::White);
                             resultWord.setOrigin(resultWord.getLocalBounds().getCenter());
@@ -186,12 +207,29 @@ int main() {
                         }
                     }
                     if (hashButton.getGlobalBounds().contains(sf::Vector2f(mouse->position)) && !scrambledString.empty() && !searched) { // click on 'search with hash'
-                        hashButton.setFillColor(sf::Color::Cyan); // placeholder
+                        searched = true;
+
+                        auto start = std::chrono::high_resolution_clock::now();
+                        hashResults = findwords(scrambledString, hash);
+                        auto end = std::chrono::high_resolution_clock::now();
+                        duration = end - start;
+
+                        int offset = -5;
+                        for (const string& word : hashResults) {
+                            sf::Text resultWord(font, word, 28.f);
+                            resultWord.setFillColor(sf::Color::White);
+                            resultWord.setOrigin(resultWord.getLocalBounds().getCenter());
+                            resultWord.setPosition(sf::Vector2f(window_width/2, window_height/2 + offset*30));
+                            resultTextObjs.push_back(resultWord);
+                            offset++;
+                        }
                     }
                     if (resetButton.getGlobalBounds().contains(sf::Vector2f(mouse->position)) && searched) { // click on 'RESET'
                         searched = false;
+                        trieSearched = false;
                         scrambledString.clear();
-                        results.clear();
+                        trieResults.clear();
+                        hashResults.clear();
                         resultTextObjs.clear();
                     }
                 }
@@ -223,23 +261,29 @@ int main() {
             appWindow.draw(hashButton);
             appWindow.draw(trieText);
             appWindow.draw(hashText);
-        } else { // after either button pressed
+        }
+        else { // after either button pressed (a search has been made)
             scrambledText.setString(scrambledString + ':');
             scrambledText.setPosition(sf::Vector2f(window_width/2, window_height/2 - 200));
             appWindow.draw(anagramsFor_Text);
             for (const sf::Text& result : resultTextObjs) {
                 appWindow.draw(result);
             }
-            durationText.setString("Time elapsed using Trie: " + to_string(duration.count()) + "ms");
+            if (trieSearched)
+                durationText.setString("Time elapsed using Trie: " + to_string(duration.count()) + "ms");
+            else
+                durationText.setString("Time elapsed using Hashmap: " + to_string(duration.count()) + "ms");
+
             durationText.setOrigin(durationText.getLocalBounds().getCenter());
             durationText.setPosition(sf::Vector2f(window_width/2, window_height - 40));
+
             appWindow.draw(durationText);
             appWindow.draw(resetButton);
             appWindow.draw(resetText);
         }
 
         appWindow.draw(titleText);
-        appWindow.draw(scrambledText);
+        appWindow.draw(scrambledText); // the input characters
 
         appWindow.display();
     }
@@ -247,28 +291,3 @@ int main() {
 
     return 0;
 }
-
-/*
-std::string file = "../words_alpha.txt";
-Hash hash = build(file);
-std::string input;
-while (true) {
-std::cout << "\nEnter letters to unscramble (or 'q' to quit): ";
-std::cin >> input;
-
-if (input == "q") {
-break;
-}
-
-std::vector<std::string> words = findwords(input, hash);
-
-if (!words.empty()) {
-std::cout << "Found " << words.size() << " word(s):" << std::endl;
-for (const std::string& word : words) {
-std::cout << "  " << word << std::endl;
-}
-} else {
-std::cout << "No matching words found" << std::endl;
-}
-}
-*/
